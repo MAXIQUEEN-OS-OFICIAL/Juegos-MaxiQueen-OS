@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sudoku MaxiQueen OS 2026</title>
+    <style>
+        :root {
+            --mq-bg: #05070a;
+            --mq-glass: rgba(255, 255, 255, 0.03);
+            --mq-glass-border: rgba(255, 255, 255, 0.1);
+            --mq-accent: #00f2ff; /* Cyan Neón 2026 */
+            --mq-purple: #7000ff;
+            --mq-error: #ff3e3e;
+            --mq-text: #e0e6ed;
+            --mq-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            margin: 0;
+            background: radial-gradient(circle at center, #1a1f35 0%, #05070a 100%);
+            color: var(--mq-text);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .os-container {
+            width: 100%;
+            max-width: 480px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        /* Header Estilo OS */
+        .os-header {
+            text-align: center;
+            padding: 10px;
+        }
+
+        .os-header h1 {
+            font-size: 1.8rem;
+            letter-spacing: 2px;
+            margin: 0;
+            background: linear-gradient(to right, var(--mq-accent), var(--mq-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-transform: uppercase;
+            font-weight: 900;
+        }
+
+        /* Widgets de Información */
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .widget {
+            background: var(--mq-glass);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--mq-glass-border);
+            border-radius: 15px;
+            padding: 12px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #8892b0;
+        }
+
+        .widget b { color: var(--mq-accent); display: block; font-size: 1.1rem; }
+
+        /* El Tablero: Neumorfismo Digital */
+        .sudoku-board {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            background: var(--mq-glass-border);
+            border: 2px solid var(--mq-glass-border);
+            border-radius: 12px;
+            overflow: hidden;
+            aspect-ratio: 1;
+            box-shadow: var(--mq-shadow);
+        }
+
+        .cell {
+            background: var(--mq-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            cursor: pointer;
+            transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 0.1px solid rgba(255,255,255,0.05);
+            position: relative;
+        }
+
+        /* Divisiones de Cuadrantes 3x3 */
+        .cell:nth-child(3n) { border-right: 2px solid var(--mq-accent); }
+        .cell:nth-child(9n) { border-right: none; }
+        .cell:nth-child(n+19):nth-child(-n+27),
+        .cell:nth-child(n+46):nth-child(-n+54) { border-bottom: 2px solid var(--mq-accent); }
+
+        .cell.fixed { color: #4e5d7e; font-weight: bold; background: rgba(255,255,255,0.02); }
+        .cell.active { background: rgba(0, 242, 255, 0.15); box-shadow: inset 0 0 15px var(--mq-accent); }
+        .cell.related { background: rgba(255,255,255,0.03); }
+        .cell.error { color: var(--mq-error); text-shadow: 0 0 8px var(--mq-error); }
+
+        /* Teclado Evolucionado */
+        .os-numpad {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            background: var(--mq-glass);
+            padding: 15px;
+            border-radius: 20px;
+            border: 1px solid var(--mq-glass-border);
+        }
+
+        .key {
+            padding: 15px 0;
+            border: none;
+            border-radius: 12px;
+            background: var(--mq-glass-border);
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .key:active { transform: scale(0.9); background: var(--mq-accent); color: var(--mq-bg); }
+        .key.special { background: var(--mq-purple); }
+
+        /* Selector de Dificultad Moderno */
+        .difficulty-scroller {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+            scrollbar-width: none;
+        }
+
+        .diff-btn {
+            white-space: nowrap;
+            padding: 8px 20px;
+            border-radius: 20px;
+            border: 1px solid var(--mq-glass-border);
+            background: transparent;
+            color: #8892b0;
+            cursor: pointer;
+        }
+
+        .diff-btn.active { background: var(--mq-accent); color: var(--mq-bg); border-color: var(--mq-accent); }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<div class="os-container">
+    <header class="os-header">
+        <h1>MaxiQueen OS</h1>
+        <small style="color:var(--mq-accent); opacity: 0.7;">SUDOKU CORE v4.0.26</small>
+    </header>
+
+    <div class="status-grid">
+        <div class="widget">TIEMPO<b id="timer">00:00</b></div>
+        <div class="widget">VIDAS<b id="lives">❤️ 3</b></div>
+        <div class="widget">PUNTAJE<b id="score">0</b></div>
+    </div>
+
+    <div class="difficulty-scroller" id="difficulty-bar">
+        <button class="diff-btn active" onclick="newGame('easy', this)">Fácil</button>
+        <button class="diff-btn" onclick="newGame('medium', this)">Medio</button>
+        <button class="diff-btn" onclick="newGame('hard', this)">Difícil</button>
+        <button class="diff-btn" onclick="newGame('expert', this)">Experto</button>
+        <button class="diff-btn" onclick="newGame('extreme', this)">Omni</button>
+    </div>
+
+    <div id="grid" class="sudoku-board"></div>
+
+    <div class="os-numpad">
+        <button class="key" onclick="pressNum(1)">1</button>
+        <button class="key" onclick="pressNum(2)">2</button>
+        <button class="key" onclick="pressNum(3)">3</button>
+        <button class="key" onclick="pressNum(4)">4</button>
+        <button class="key" onclick="pressNum(5)">5</button>
+        <button class="key" onclick="pressNum(6)">6</button>
+        <button class="key" onclick="pressNum(7)">7</button>
+        <button class="key" onclick="pressNum(8)">8</button>
+        <button class="key" onclick="pressNum(9)">9</button>
+        <button class="key special" onclick="pressNum(0)">⌫</button>
+    </div>
+
+    <div style="text-align: center;">
+        <button onclick="solve()" style="background:none; border:1px solid var(--mq-purple); color:var(--mq-purple); padding:8px 20px; border-radius:10px; cursor:pointer;">Auto-Solve (Debug)</button>
+    </div>
+</div>
+
+<script>
+    let solution = [];
+    let selectedIdx = null;
+    let lives = 3;
+    let seconds = 0;
+    let timerInt;
+    let score = 0;
+
+    // Lógica de Generación MaxiQueen Core
+    function generateSolution() {
+        const board = Array(81).fill(0);
+        const isValid = (b, r, c, n) => {
+            for (let i = 0; i < 9; i++) if (b[r*9+i] === n || b[i*9+c] === n) return false;
+            let br = Math.floor(r/3)*3, bc = Math.floor(c/3)*3;
+            for (let i=0; i<3; i++) for (let j=0; j<3; j++) if (b[(br+i)*9+(bc+j)]===n) return false;
+            return true;
+        };
+        const fill = (b) => {
+            for (let i = 0; i < 81; i++) {
+                if (b[i] === 0) {
+                    let nums = [1,2,3,4,5,6,7,8,9].sort(() => Math.random() - 0.5);
+                    for (let n of nums) {
+                        if (isValid(b, Math.floor(i/9), i%9, n)) {
+                            b[i] = n;
+                            if (fill(b)) return true;
+                            b[i] = 0;
+                        }
+                    }
+                    return false;
+                }
+            }
+            return true;
+        };
+        fill(board);
+        return board;
+    }
+
+    function createBoard() {
+        const grid = document.getElementById("grid");
+        grid.innerHTML = "";
+        for (let i = 0; i < 81; i++) {
+            const cell = document.createElement("div");
+            cell.className = "cell";
+            cell.dataset.index = i;
+            cell.onclick = () => focusCell(i);
+            grid.appendChild(cell);
+        }
+    }
+
+    function focusCell(idx) {
+        selectedIdx = idx;
+        const cells = document.querySelectorAll(".cell");
+        const row = Math.floor(idx / 9);
+        const col = idx % 9;
+
+        cells.forEach((c, i) => {
+            c.classList.remove("active", "related");
+            let r = Math.floor(i / 9), _c = i % 9;
+            if (r === row || _c === col) c.classList.add("related");
+        });
+        cells[idx].classList.add("active");
+    }
+
+    function newGame(level, btn) {
+        if(btn) {
+            document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        clearInterval(timerInt);
+        seconds = 0;
+        lives = 3;
+        score = 0;
+        document.getElementById("lives").textContent = "❤️ " + lives;
+        document.getElementById("score").textContent = score;
+        
+        solution = generateSolution();
+        const config = { easy: 30, medium: 45, hard: 55, expert: 62, extreme: 70 };
+        let puzzle = [...solution];
+        let remove = config[level];
+        
+        while (remove > 0) {
+            let i = Math.floor(Math.random() * 81);
+            if (puzzle[i] !== 0) { puzzle[i] = 0; remove--; }
+        }
+
+        const cells = document.querySelectorAll(".cell");
+        cells.forEach((c, i) => {
+            c.classList.remove("fixed", "error", "active", "related");
+            c.textContent = puzzle[i] || "";
+            if (puzzle[i]) c.classList.add("fixed");
+        });
+
+        timerInt = setInterval(() => {
+            seconds++;
+            const m = Math.floor(seconds/60).toString().padStart(2,'0');
+            const s = (seconds%60).toString().padStart(2,'0');
+            document.getElementById("timer").textContent = `${m}:${s}`;
+        }, 1000);
+    }
+
+    function pressNum(n) {
+        if (selectedIdx === null) return;
+        const cell = document.querySelectorAll(".cell")[selectedIdx];
+        if (cell.classList.contains("fixed") || lives <= 0) return;
+
+        if (n === 0) {
+            cell.textContent = "";
+            cell.classList.remove("error");
+            return;
+        }
+
+        cell.textContent = n;
+        if (n !== solution[selectedIdx]) {
+            cell.classList.add("error");
+            lives--;
+            document.getElementById("lives").textContent = "❤️ " + lives;
+            if (lives <= 0) alert("SISTEMA CRÍTICO: Juego Terminado");
+        } else {
+            cell.classList.remove("error");
+            score += 10;
+            document.getElementById("score").textContent = score;
+            checkWin();
+        }
+    }
+
+    function checkWin() {
+        const cells = document.querySelectorAll(".cell");
+        if ([...cells].every((c, i) => parseInt(c.textContent) === solution[i])) {
+            clearInterval(timerInt);
+            alert("OPTIMIZACIÓN COMPLETA: ¡Has ganado!");
+        }
+    }
+
+    function solve() {
+        document.querySelectorAll(".cell").forEach((c, i) => {
+            c.textContent = solution[i];
+            c.classList.remove("error");
+        });
+        clearInterval(timerInt);
+    }
+
+    createBoard();
+    newGame('easy');
+</script>
+
+</body>
+</html>
