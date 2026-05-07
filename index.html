@@ -377,5 +377,135 @@ s0.parentNode.insertBefore(s1,s0);
 })();
 </script>
 
+<div class="os-navigation-hub">
+    <h3 class="hub-title">MÓDULOS DE JUEGO DISPONIBLES</h3>
+    
+    <div class="hub-grid">
+        <a href="URL_DE_TU_SUDOKU_3" class="hub-card">
+            <span class="card-id">SQ-03</span>
+            <div class="card-info">
+                <span class="card-name">Sudoku Core 3</span>
+                <span class="card-status">Legacy Edition</span>
+            </div>
+            <div class="card-arrow">→</div>
+        </a>
+
+        <a href="URL_DE_TU_SUDOKU_5" class="hub-card">
+            <span class="card-id">SQ-05</span>
+            <div class="card-info">
+                <span class="card-name">Sudoku Core 5</span>
+                <span class="card-status">Alpha Version</span>
+            </div>
+            <div class="card-arrow">→</div>
+        </a>
+
+        <a href="URL_DE_TU_SUDOKU_6" class="hub-card">
+            <span class="card-id">SQ-06</span>
+            <div class="card-info">
+                <span class="card-name">Sudoku Core 6</span>
+                <span class="card-status">Beta Release</span>
+            </div>
+            <div class="card-arrow">→</div>
+        </a>
+
+        <a href="URL_DE_TU_SUDOKU_7" class="hub-card active-link">
+            <span class="card-id">SQ-07</span>
+            <div class="card-info">
+                <span class="card-name">Sudoku Core 7</span>
+                <span class="card-status">Advanced Patch</span>
+            </div>
+            <div class="card-arrow">→</div>
+        </a>
+    </div>
+</div>
+
+<style>
+    /* Estilos integrados para MaxiQueen OS Hub */
+    .os-navigation-hub {
+        width: 100%;
+        max-width: 480px;
+        margin: 30px auto;
+        padding: 0 20px;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .hub-title {
+        color: var(--mq-accent, #00f2ff);
+        font-size: 0.75rem;
+        letter-spacing: 3px;
+        margin-bottom: 15px;
+        opacity: 0.8;
+        border-bottom: 1px solid rgba(0, 242, 255, 0.2);
+        padding-bottom: 5px;
+    }
+
+    .hub-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .hub-card {
+        display: flex;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        padding: 12px 15px;
+        text-decoration: none;
+        color: white;
+        transition: all 0.3s ease;
+    }
+
+    .hub-card:hover {
+        background: rgba(112, 0, 255, 0.1);
+        border-color: #7000ff;
+        transform: translateX(5px);
+    }
+
+    .card-id {
+        font-size: 0.65rem;
+        background: rgba(0, 242, 255, 0.1);
+        color: #00f2ff;
+        padding: 4px 8px;
+        border-radius: 5px;
+        font-weight: bold;
+        margin-right: 15px;
+        min-width: 50px;
+        text-align: center;
+    }
+
+    .card-info {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+    }
+
+    .card-name {
+        font-size: 0.95rem;
+        font-weight: 500;
+    }
+
+    .card-status {
+        font-size: 0.7rem;
+        color: #8892b0;
+    }
+
+    .card-arrow {
+        color: #7000ff;
+        font-weight: bold;
+        opacity: 0.5;
+    }
+
+    .active-link {
+        border-left: 3px solid #00f2ff;
+    }
+
+    /* Ajuste para móviles */
+    @media (max-width: 480px) {
+        .hub-card { padding: 10px; }
+    }
+</style>
+
 </body>
 </html>
