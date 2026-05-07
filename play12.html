@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sudoku Core | MaxiQueen OS</title>
+    <style>
+        :root {
+            --bg: #020617;
+            --primary: #00f2ff;
+            --accent: #7000ff;
+            --cell-bg: rgba(255, 255, 255, 0.05);
+            --text: #e2e8f0;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* Contenedor del Tablero */
+        .sudoku-grid {
+            display: grid;
+            grid-template-columns: repeat(9, 45px);
+            grid-template-rows: repeat(9, 45px);
+            gap: 1px;
+            background: var(--primary);
+            border: 2px solid var(--primary);
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .cell {
+            width: 45px;
+            height: 45px;
+            background: var(--bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .cell:hover { background: var(--cell-bg); }
+        .cell.selected { background: rgba(0, 242, 255, 0.3); color: white; }
+        .cell.fixed { color: #64748b; font-weight: bold; cursor: default; }
+        .cell.highlight { background: rgba(0, 242, 255, 0.1); }
+
+        /* Bordes de Bloque 3x3 */
+        .cell:nth-child(3n) { border-right: 2px solid var(--primary); }
+        .cell:nth-child(9n) { border-right: none; }
+        .sudoku-grid div:nth-child(n+19):nth-child(-n+27),
+        .sudoku-grid div:nth-child(n+46):nth-child(-n+54) { border-bottom: 2px solid var(--primary); }
+
+        /* Controles */
+        .keypad { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 15px; }
+        button {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid var(--accent);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        button:hover { background: var(--accent); }
+        .btn-del { background: var(--accent); }
+        .difficulty-bar { display: flex; gap: 5px; }
+    </style>
+</head>
+<body>
+
+<h2 style="letter-spacing: 2px;">MAXIQUEEN <span style="color:var(--primary)">SUDOKU_OS</span></h2>
+
+<div id="grid" class="sudoku-grid"></div>
+
+<div class="keypad" id="number-pad">
+    </div>
+
+<div class="difficulty-bar">
+    <button onclick="newGame('easy')">Fácil</button>
+    <button onclick="newGame('medium')">Medio</button>
+    <button onclick="newGame('hard')">Difícil</button>
+    <button onclick="newGame('expert')">Experto</button>
+    <button onclick="autoSolve()" style="border-color: var(--primary)">Auto-Solve</button>
+</div>
+
+<script>
+let board = Array(9).fill().map(() => Array(9).fill(0));
+let initialBoard = [];
+let selectedCell = null;
+
+// --- INICIALIZACIÓN ---
+function init() {
+    createGrid();
+    createKeypad();
+    newGame('easy');
+}
+
+function createGrid() {
+    const gridDiv = document.getElementById('grid');
+    gridDiv.innerHTML = '';
+    for (let r = 0; r < 9; r++) {
+        for (let c = 0; c < 9; c++) {
+            const cell = document.createElement('div');
+            cell.className = 'cell';
+            cell.dataset.row = r;
+            cell.dataset.col = c;
+            cell.onclick = () => selectCell(r, c);
+            gridDiv.appendChild(cell);
+        }
+    }
+}
+
+function createKeypad() {
+    const pad = document.getElementById('number-pad');
+    for (let i = 1; i <= 9; i++) {
+        const btn = document.createElement('button');
+        btn.innerText = i;
+        btn.onclick = () => setNumber(i);
+        pad.appendChild(btn);
+    }
+    const del = document.createElement('button');
+    del.innerText = 'DEL';
+    del.className = 'btn-del';
+    del.onclick = () => setNumber(0);
+    pad.appendChild(del);
+}
+
+// --- LÓGICA DE JUEGO ---
+function newGame(diff) {
+    // Limpiar estado
+    board = Array(9).fill().map(() => Array(9).fill(0));
+    fillBoard(board); // Generar tablero completo válido
+    
+    // Quitar números según dificultad
+    const counts = { easy: 30, medium: 45, hard: 55, expert: 60 };
+    removeNumbers(counts[diff]);
+    
+    initialBoard = board.map(row => [...row]);
+    renderBoard();
+}
+
+function selectCell(r, c) {
+    if (initialBoard[r][c] !== 0) return;
+    selectedCell = { r, c };
+    renderBoard();
+}
+
+function setNumber(num) {
+    if (!selectedCell) return;
+    board[selectedCell.r][selectedCell.c] = num;
+    renderBoard();
+}
+
+function renderBoard() {
+    const cells = document.querySelectorAll('.cell');
+    cells.forEach(cell => {
+        const r = parseInt(cell.dataset.row);
+        const c = parseInt(cell.dataset.col);
+        const val = board[r][c];
+        
+        cell.innerText = val !== 0 ? val : '';
+        cell.className = 'cell';
+        
+        if (initialBoard[r][c] !== 0) cell.classList.add('fixed');
+        if (selectedCell && r === selectedCell.r && c === selectedCell.col) cell.classList.add('selected');
+        
+        // Resaltar cruz (como en tu imagen)
+        if (selectedCell && (r === selectedCell.r || c === selectedCell.c)) {
+            cell.classList.add('highlight');
+        }
+    });
+}
+
+// --- ALGORITMOS (Backtracking) ---
+function isValid(b, r, c, n) {
+    for (let i = 0; i < 9; i++) {
+        if (b[r][i] === n || b[i][c] === n) return false;
+    }
+    let startRow = Math.floor(r / 3) * 3;
+    let startCol = Math.floor(c / 3) * 3;
+    for (let i = 0; i < 3; i++) {
+        for (let j = 0; j < 3; j++) {
+            if (b[startRow + i][startCol + j] === n) return false;
+        }
+    }
+    return true;
+}
+
+function fillBoard(b) {
+    for (let r = 0; r < 9; r++) {
+        for (let c = 0; c < 9; c++) {
+            if (b[r][c] === 0) {
+                let nums = [1,2,3,4,5,6,7,8,9].sort(() => Math.random() - 0.5);
+                for (let n of nums) {
+                    if (isValid(b, r, c, n)) {
+                        b[r][c] = n;
+                        if (fillBoard(b)) return true;
+                        b[r][c] = 0;
+                    }
+                }
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+function removeNumbers(count) {
+    let removed = 0;
+    while (removed < count) {
+        let r = Math.floor(Math.random() * 9);
+        let c = Math.floor(Math.random() * 9);
+        if (board[r][c] !== 0) {
+            board[r][c] = 0;
+            removed++;
+        }
+    }
+}
+
+function autoSolve() {
+    const solvingBoard = board.map(row => [...row]);
+    if (fillBoard(solvingBoard)) {
+        board = solvingBoard;
+        renderBoard();
+    }
+}
+
+init();
+</script>
+</body>
+</html>
