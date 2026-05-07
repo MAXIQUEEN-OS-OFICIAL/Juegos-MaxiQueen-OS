@@ -1847,59 +1847,6 @@ function getResponse(message) {
     return "Te leo con atención... cuéntame más. 👑";
 }
 </script>
-<!-- ================= SECCIÓN LEGAL Y LICENCIA ================= -->
-<section class="py-12 px-6 border-t border-zinc-900 bg-black/50">
-  <div class="max-w-4xl mx-auto text-center">
-    <div class="inline-block p-1 mb-6 rounded-full bg-gradient-to-r from-zinc-800 to-zinc-700">
-      <span class="px-4 py-1 text-xs font-bold text-zinc-400 uppercase tracking-widest bg-black rounded-full">Apache License 2.0</span>
-    </div>
-    
-    <h2 class="text-3xl font-bold text-white mb-4">Licencia de Uso Profesional</h2>
-    
-    <div class="text-zinc-400 text-sm md:text-base leading-relaxed max-w-2xl mx-auto">
-      <p>
-        El núcleo de <span class="text-yellow-500 font-medium">MaxiQueen OS</span> es de código abierto. 
-        Eres libre de usar, modificar y distribuir el sistema base, incluso para fines comerciales.
-      </p>
-      <p class="mt-4 border-l-2 border-yellow-600 pl-4 italic text-zinc-500">
-        Nota: La identidad visual, branding y módulos premium (Suite Black & Gold) están protegidos y no se incluyen bajo esta licencia.
-      </p>
-    </div>
-  </div>
-</section>
-
-<!-- ================= SOPORTE Y PAGOS ================= -->
-<section class="py-16 text-center">
-  <div class="relative glass inline-block px-12 py-10 rounded-[2rem] border border-yellow-500/10 shadow-2xl overflow-hidden group">
-    <!-- Efecto de luz interna -->
-    <div class="absolute -top-24 -left-24 w-48 h-48 bg-yellow-500/10 rounded-full blur-3xl group-hover:bg-yellow-500/20 transition-all"></div>
-    
-    <h3 class="text-2xl font-bold text-white mb-2">Asistente MQ</h3>
-    <p class="mb-8 text-zinc-400">Finaliza tu solicitud o consulta con soporte técnico.</p>
-
-    <!-- Avatar de Soporte Interactuable -->
-    <div id="soporte-maxiqueen-container" class="relative inline-block">
-      <div class="absolute inset-0 bg-yellow-400 rounded-full animate-ping opacity-20"></div>
-      <img src="https://res.cloudinary.com/maxiqueen-os/image/upload/v1775244577/MQ_OS_maxiqueen-avatar_ej0rzg.png" 
-           alt="Soporte MaxiQueen" 
-           id="avatar-soporte-action"
-           class="relative w-24 h-24 md:w-32 md:h-32 rounded-full object-cover border-4 border-zinc-900 shadow-2xl cursor-pointer hover:scale-110 hover:border-yellow-500 transition-all duration-300">
-    </div>
-
-    <div class="mt-8">
-      <span class="text-xs text-zinc-500 uppercase tracking-widest">Soporte 24/7 Activo</span>
-    </div>
-  </div>
-</section>
-
-<!-- SCRIPTS UNIFICADOS -->
-<script>
-  // Una sola función para manejar el redireccionamiento
-  document.getElementById("avatar-soporte-action").addEventListener("click", function() {
-    // Redirige al centro de ayuda o chat real
-    window.location.href = "https://maxiqueen.tawk.help/"; 
-  });
-</script>
 
 <!-- ================= RECURSOS DE CONFIRMACION ================= -->
 <section class="py-24 px-6 bg-black/30 fade-in">
@@ -1920,43 +1867,6 @@ function getResponse(message) {
       <li><a class="hover:text-amber-400 transition" href="https://app-vlc.hotmart.com/affiliate-recruiting/view/6489M103285849" target="_blank" rel="noopener">💻 Afiliados Hotmart</a></li>
       <li><a class="hover:text-amber-400 transition" href="https://app.hotmart.com/membership/cesar-f9370874/community/management/15254181" target="_blank" rel="noopener">📂 Comunidad Hotmart</a></li>
      
-</section>
-<!-- MÓDULO GENERADOR DE IMÁGENES MAXIQUEEN -->
-<div class="glass p-8 mt-10 text-center border border-yellow-500/20 rounded-3xl shadow-2xl">
-  <h3 class="text-2xl font-bold text-white mb-2">🎨 Generador Creativo</h3>
-  <p class="text-zinc-400 text-sm mb-6">Transforma tus ideas en activos visuales de élite.</p>
-
-  <div class="flex flex-col md:flex-row gap-3">
-    <input 
-      id="promptInput"
-      type="text" 
-      placeholder="Ej: Logo futurista dorado, oficina cyberpunk..."
-      class="flex-1 p-4 rounded-2xl bg-zinc-900 text-white border border-zinc-800 focus:border-yellow-500 outline-none transition-all"
-    />
-    <button id="generateBtn" onclick="generateImage()" class="px-8 py-4 bg-gradient-to-r from-amber-500 to-yellow-600 text-black font-bold rounded-2xl hover:scale-105 transition-transform active:scale-95 shadow-lg shadow-yellow-500/20">
-      Generar
-    </button>
-  </div>
-
-  <!-- Contenedor de Resultado -->
-  <div id="imageContainer" class="mt-8 relative hidden group">
-    <div id="loadingSpinner" class="hidden flex flex-col items-center py-10">
-      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-500 mb-4"></div>
-      <p class="text-zinc-500 text-xs uppercase tracking-widest">Procesando con IA...</p>
-    </div>
-    <div id="imageResult" class="cursor-pointer overflow-hidden rounded-2xl border border-white/5">
-      <!-- La imagen aparecerá aquí -->
-    </div>
-  </div>
-</div>
-
-<!-- LIGHTBOX -->
-<div id="lightbox" class="fixed inset-0 bg-black/95 hidden flex items-center justify-center z-[100] backdrop-blur-sm">
-  <button onclick="closeLightbox()" class="absolute top-6 right-6 text-white text-4xl hover:text-yellow-500 transition-colors">✕</button>
-  <div id="lightboxContent" class="max-w-4xl max-h-[80vh] p-4"></div>
-</div>
-       
-       
        <!-- ================= RECURSOS DE CONFIRMACION ================= -->
 <section class="py-24 px-6 bg-black/30 fade-in">
   <div class="max-w-6xl mx-auto text-center">
@@ -2042,8 +1952,6 @@ function getResponse(message) {
   </div>
 </div>
 
-     </section>
-
 <style>
   /* Asegúrate de tener este CSS básico para que se vean */
   .mq-icon-wrapper {
@@ -2088,26 +1996,7 @@ function getResponse(message) {
 <script type="module" src="./js/index.js"></script>
 
 <button onclick="goBack()">⬅ Volver</button>
-
-<!-- ================= INTERFAZ DE CHAT & IA ================= -->
-<div id="chat-container" class="max-w-xl mx-auto bg-zinc-900/50 rounded-3xl border border-white/5 overflow-hidden shadow-2xl mb-8">
-    <!-- Ventana de Mensajes -->
-    <div id="chat-window" class="h-[350px] overflow-y-auto p-4 space-y-4 scroll-smooth">
-        <p class="text-xs text-zinc-500 text-center uppercase tracking-widest">Iniciando protocolo MaxiQueen_Neural...</p>
-    </div>
-    
-    <!-- Barra de Entrada -->
-    <div class="p-4 bg-black/20 border-t border-white/5 flex gap-2">
-        <input type="text" id="user-input" 
-               class="flex-1 bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2 text-zinc-200 focus:outline-none focus:border-yellow-500/50 transition-colors"
-               placeholder="Escribe a MaxiQueen OS...">
-        <button onclick="enviarMensaje()" 
-                class="bg-yellow-500 hover:bg-yellow-400 text-black font-bold px-6 py-2 rounded-xl transition-all active:scale-95">
-            Enviar
-        </button>
-    </div>
-</div>
-
+        
 <!-- ================= SCRIPTS DE SISTEMA ================= -->
 <script>
 // Navegación
