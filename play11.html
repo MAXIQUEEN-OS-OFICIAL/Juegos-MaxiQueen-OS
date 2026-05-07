@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MaxiQueen OS | Sudoku Core</title>
+    <style>
+        :root {
+            --bg: #020617;
+            --surface: rgba(30, 41, 59, 0.7);
+            --primary: #00f2ff;
+            --secondary: #7000ff;
+            --accent: #d946ef;
+            --error: #ff4444;
+            --text: #e2e8f0;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            background-image: radial-gradient(circle at 50% 50%, #1e1b4b 0%, #020617 100%);
+            color: var(--text);
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Pantalla de Acceso */
+        #authOverlay {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            z-index: 200;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .auth-card {
+            background: var(--surface);
+            padding: 40px;
+            border-radius: 24px;
+            border: 1px solid var(--primary);
+            text-align: center;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 40px rgba(0, 242, 255, 0.1);
+        }
+
+        /* Contenedor Principal */
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            padding: 20px;
+            z-index: 10;
+        }
+
+        .header-os {
+            text-align: center;
+            border-bottom: 1px solid rgba(0, 242, 255, 0.2);
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+        }
+
+        .header-os h1 {
+            font-size: 1.2rem;
+            letter-spacing: 5px;
+            color: var(--primary);
+            text-shadow: 0 0 10px var(--primary);
+        }
+
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+            background: var(--surface);
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        /* Grid de Sudoku Estilo OS */
+        .sudoku-grid {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            border: 2px solid var(--primary);
+            background: var(--primary);
+            gap: 1px;
+            box-shadow: 0 0 30px rgba(0, 242, 255, 0.15);
+            aspect-ratio: 1;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .cell {
+            background: #0f172a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .cell:hover { background: #1e293b; }
+        .cell.selected { background: var(--secondary) !important; color: white; }
+        .cell.related { background: rgba(0, 242, 255, 0.05); }
+        .cell.fixed { color: #64748b; font-weight: 800; background: #0a0f1e; }
+        .cell.error { color: var(--error); text-shadow: 0 0 8px var(--error); }
+
+        /* Numpad Futurista */
+        .numpad {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .num-btn {
+            background: var(--surface);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .num-btn:hover { border-color: var(--primary); color: var(--primary); }
+        .num-btn:active { transform: scale(0.9); background: var(--primary); color: var(--bg); }
+
+        .difficulty-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+
+        .btn-diff {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #94a3b8;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+
+        .btn-diff.active { background: var(--primary); color: var(--bg); font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div id="authOverlay">
+        <div class="auth-card">
+            <h2 style="color: var(--primary); margin:0">MAXIQUEEN OS</h2>
+            <p style="font-size: 0.8rem; opacity: 0.7; letter-spacing: 2px">DATA CORE ACCESS</p>
+            <input type="text" id="agentName" placeholder="ID DEL AGENTE" 
+                   style="background:transparent; border:1px solid var(--primary); color:white; padding:10px; border-radius:8px; margin: 20px 0; text-align:center">
+            <br>
+            <button onclick="initOS()" style="background:var(--primary); border:none; padding:10px 30px; border-radius:8px; font-weight:bold; cursor:pointer">ESTABLECER CONEXIÓN</button>
+        </div>
+    </div>
+
+    <div class="app-container">
+        <div class="header-os">
+            <h1 id="titleOS">SUDOKU CORE v2.0</h1>
+            <p id="agentDisplay" style="font-size: 0.7rem; color: var(--secondary)">USER: OFFLINE</p>
+        </div>
+
+        <div class="stats-bar">
+            <div id="timer">⏱️ 00:00</div>
+            <div id="difficulty-label">MODO: ---</div>
+            <div id="lives">HP: ❤️ 3</div>
+        </div>
+
+        <div id="grid" class="sudoku-grid"></div>
+
+        <div class="numpad">
+            <button class="num-btn" onclick="inputValue(1)">1</button>
+            <button class="num-btn" onclick="inputValue(2)">2</button>
+            <button class="num-btn" onclick="inputValue(3)">3</button>
+            <button class="num-btn" onclick="inputValue(4)">4</button>
+            <button class="num-btn" onclick="inputValue(5)">5</button>
+            <button class="num-btn" onclick="inputValue(6)">6</button>
+            <button class="num-btn" onclick="inputValue(7)">7</button>
+            <button class="num-btn" onclick="inputValue(8)">8</button>
+            <button class="num-btn" onclick="inputValue(9)">9</button>
+            <button class="num-btn" style="background:var(--secondary)" onclick="inputValue(0)">DEL</button>
+        </div>
+
+        <div class="difficulty-selector">
+            <button class="btn-diff" onclick="newGame('easy')">Fácil</button>
+            <button class="btn-diff" onclick="newGame('medium')">Medio</button>
+            <button class="btn-diff" onclick="newGame('hard')">Difícil</button>
+            <button class="btn-diff" onclick="newGame('expert')">Experto</button>
+            <button class="btn-diff" onclick="solveGame()" style="border-color: var(--accent); color: var(--accent)">Auto-Solve</button>
+        </div>
+    </div>
+
+<script>
+    let solution = [];
+    let selectedCell = null;
+    let lives = 3;
+    let seconds = 0;
+    let timerInt;
+    let agent = "Invitado";
+
+    // Lógica de Persistencia y OS
+    function initOS() {
+        const nameInput = document.getElementById('agentName').value;
+        if(nameInput.length < 2) return alert("ID inválido");
+        agent = nameInput.toUpperCase();
+        document.getElementById('authOverlay').style.display = 'none';
+        document.getElementById('agentDisplay').innerText = `AGENT: ${agent}`;
+        initGrid();
+    }
+
+    function initGrid() {
+        const gridEl = document.getElementById('grid');
+        gridEl.innerHTML = '';
+        for (let i = 0; i < 81; i++) {
+            const cell = document.createElement('div');
+            cell.classList.add('cell');
+            cell.dataset.index = i;
+            cell.addEventListener('click', () => selectCell(i));
+            gridEl.appendChild(cell);
+        }
+    }
+
+    function selectCell(index) {
+        const cells = document.querySelectorAll('.cell');
+        cells.forEach(c => c.classList.remove('selected', 'related'));
+        selectedCell = index;
+        const row = Math.floor(index / 9);
+        const col = index % 9;
+
+        cells.forEach((c, i) => {
+            const r = Math.floor(i / 9);
+            const _c = i % 9;
+            if (r === row || _c === col) c.classList.add('related');
+        });
+        cells[index].classList.add('selected');
+    }
+
+    // [Aquí iría tu lógica de generateSudoku que ya tienes]
+    // Pero con una pequeña mejora estética al llenar:
+
+    function newGame(level) {
+        // ... (Tu lógica de generación de board) ...
+        // Simplificado para el ejemplo:
+        clearInterval(timerInt);
+        seconds = 0;
+        lives = 3;
+        document.getElementById('lives').textContent = "HP: ❤️ " + lives;
+        document.getElementById('difficulty-label').textContent = "MODO: " + level.toUpperCase();
+        
+        // Simulación de carga de datos
+        document.getElementById('titleOS').innerText = "SYNCING DATA...";
+        setTimeout(() => {
+            document.getElementById('titleOS').innerText = "SUDOKU CORE v2.0";
+            // Lógica de llenado de celdas...
+            startTimer();
+        }, 800);
+        
+        // IMPORTANTE: Aquí integrarías tu función original de generateSudoku()
+    }
+
+    function startTimer() {
+        timerInt = setInterval(() => {
+            seconds++;
+            let m = Math.floor(seconds / 60).toString().padStart(2, '0');
+            let s = (seconds % 60).toString().padStart(2, '0');
+            document.getElementById('timer').textContent = `⏱️ ${m}:${s}`;
+        }, 1000);
+    }
+
+    function inputValue(num) {
+        if (selectedCell === null || lives <= 0) return;
+        const cell = document.querySelectorAll('.cell')[selectedCell];
+        if (cell.classList.contains('fixed')) return;
+
+        // Efecto visual de escritura
+        cell.textContent = num === 0 ? '' : num;
+        
+        // Validación (Comparando con el array 'solution')
+        // if(num !== solution[selectedCell]) { ... reducir vida ... }
+    }
+
+    // Registro de récords en LocalStorage
+    function saveRecord(score) {
+        let history = JSON.parse(localStorage.getItem('mq_sudoku_records') || "[]");
+        history.push({agent, score, date: new Date().toLocaleDateString()});
+        localStorage.setItem('mq_sudoku_records', JSON.stringify(history));
+    }
+</script>
+</body>
+</html>
