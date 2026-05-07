@@ -1,23 +1,308 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Juego RPG</title>
-<link rel="stylesheet" href="game.css">
-</head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scurirty Core | MaxiQueen OS</title>
+    <style>
+        :root {
+            --bg: #020617;
+            --primary: #00f2ff;
+            --accent: #7000ff;
+            --error: #ef4444;
+            --text: #e2e8f0;
+            --success: #22c55e;
+        }
 
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .os-header {
+            width: 100%;
+            padding: 10px;
+            background: linear-gradient(90deg, rgba(112, 0, 255, 0.2), rgba(0, 242, 255, 0.1));
+            border-bottom: 2px solid var(--accent);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+
+        canvas {
+            background: radial-gradient(circle, #0a0a20 0%, #020617 100%);
+            display: block;
+            margin: 10px auto;
+            border: 2px solid var(--primary);
+            box-shadow: 0 0 30px rgba(0, 242, 255, 0.15);
+            cursor: crosshair;
+        }
+
+        .stats-container {
+            position: absolute;
+            top: 80px;
+            left: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .glass-card {
+            background: rgba(15, 23, 42, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(8px);
+            min-width: 120px;
+        }
+
+        .level-banner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--primary);
+            text-shadow: 0 0 20px var(--primary);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+
+        .btn-start {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+    </style>
+</head>
 <body>
 
-<h1>🎯 Atrapa el objetivo</h1>
+<div class="os-header">
+    <h2 style="margin:0; font-size: 1.2rem;">MAXIQUEEN <span style="color:var(--primary)">SEC_CORE</span></h2>
+    <div id="level-display" style="font-weight: bold; color: var(--success)">NIVEL: 1</div>
+</div>
 
-<p>Puntos: <span id="score">0</span></p>
-<p>Tiempo: <span id="time">10</span></p>
+<div class="stats-container">
+    <div class="glass-card">
+        <div style="font-size: 0.7rem; color: #94a3b8">CRÉDITOS</div>
+        <div id="credits" style="color: var(--primary); font-size: 1.5rem; font-weight: bold;">500</div>
+    </div>
+    <div class="glass-card">
+        <div style="font-size: 0.7rem; color: #94a3b8">INTEGRIDAD</div>
+        <div id="health" style="color: var(--error); font-size: 1.5rem; font-weight: bold;">100%</div>
+    </div>
+    <div class="glass-card">
+        <div style="font-size: 0.7rem; color: #94a3b8">ENEMIGOS RESTANTES</div>
+        <div id="enemy-count" style="font-size: 1.2rem;">10</div>
+    </div>
+</div>
 
-<button onclick="startGame()">Iniciar</button>
+<div id="level-up-text" class="level-banner">NIVEL COMPLETADO</div>
 
-<div id="gameArea"></div>
+<canvas id="gameCanvas" width="450" height="600"></canvas>
 
-<script src="game.js"></script>
+<script>
+const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+// --- CONFIGURACIÓN DE NIVELES ---
+let gameState = {
+    level: 1,
+    credits: 500,
+    health: 100,
+    enemiesToSpawn: 10,
+    enemiesKilled: 0,
+    isTransitioning: false
+};
+
+let towers = [];
+let enemies = [];
+let bullets = [];
+let frames = 0;
+
+class Tower {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.range = 130;
+        this.cooldown = 0;
+        this.fireRate = 25;
+    }
+    draw() {
+        ctx.save();
+        ctx.shadowBlur = 15;
+        ctx.shadowColor = "#7000ff";
+        ctx.fillStyle = "#7000ff";
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 14, 0, Math.PI * 2);
+        ctx.fill();
+        // Núcleo
+        ctx.fillStyle = "#00f2ff";
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    }
+    update() {
+        if (this.cooldown > 0) this.cooldown--;
+        if (this.cooldown === 0) {
+            const target = enemies.find(e => Math.hypot(e.x - this.x, e.y - this.y) < this.range);
+            if (target) {
+                bullets.push(new Projectile(this.x, this.y, target));
+                this.cooldown = this.fireRate;
+            }
+        }
+    }
+}
+
+class Enemy {
+    constructor(level) {
+        this.x = Math.random() * (canvas.width - 40) + 20;
+        this.y = -30;
+        this.hp = 2 + Math.floor(level / 2);
+        this.maxHp = this.hp;
+        this.speed = 1 + (level * 0.2);
+        this.value = 20 + (level * 5);
+    }
+    draw() {
+        ctx.fillStyle = "#ef4444";
+        ctx.beginPath();
+        ctx.moveTo(this.x, this.y - 10);
+        ctx.lineTo(this.x + 10, this.y + 10);
+        ctx.lineTo(this.x - 10, this.y + 10);
+        ctx.closePath();
+        ctx.fill();
+        
+        // Vida
+        ctx.fillStyle = "#1e293b";
+        ctx.fillRect(this.x - 12, this.y - 18, 24, 4);
+        ctx.fillStyle = "#ef4444";
+        ctx.fillRect(this.x - 12, this.y - 18, (this.hp / this.maxHp) * 24, 4);
+    }
+    update() {
+        this.y += this.speed;
+    }
+}
+
+class Projectile {
+    constructor(x, y, target) {
+        this.x = x; this.y = y; this.target = target;
+        this.speed = 8;
+    }
+    draw() {
+        ctx.fillStyle = "#00f2ff";
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    update() {
+        const dx = this.target.x - this.x;
+        const dy = this.target.y - this.y;
+        const dist = Math.hypot(dx, dy);
+        this.x += (dx / dist) * this.speed;
+        this.y += (dy / dist) * this.speed;
+    }
+}
+
+// --- LÓGICA DE JUEGO ---
+function nextLevel() {
+    gameState.isTransitioning = true;
+    const banner = document.getElementById("level-up-text");
+    banner.style.opacity = "1";
+    
+    setTimeout(() => {
+        gameState.level++;
+        gameState.enemiesToSpawn = 10 + (gameState.level * 5);
+        gameState.enemiesKilled = 0;
+        gameState.isTransitioning = false;
+        banner.style.opacity = "0";
+        document.getElementById("level-display").innerText = "NIVEL: " + gameState.level;
+        updateUI();
+    }, 2000);
+}
+
+function updateUI() {
+    document.getElementById("credits").innerText = gameState.credits;
+    document.getElementById("health").innerText = gameState.health + "%";
+    document.getElementById("enemy-count").innerText = (gameState.enemiesToSpawn - gameState.enemiesKilled);
+}
+
+canvas.addEventListener("click", (e) => {
+    if (gameState.credits >= 150) {
+        const rect = canvas.getBoundingClientRect();
+        towers.push(new Tower(e.clientX - rect.left, e.clientY - rect.top));
+        gameState.credits -= 150;
+        updateUI();
+    }
+});
+
+function gameLoop() {
+    ctx.fillStyle = "rgba(2, 6, 23, 0.2)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    if (!gameState.isTransitioning) {
+        // Spawn de enemigos
+        if (frames % 60 === 0 && gameState.enemiesToSpawn > (enemies.length + gameState.enemiesKilled)) {
+            enemies.push(new Enemy(gameState.level));
+        }
+
+        // Subir de nivel si la oleada termina
+        if (gameState.enemiesKilled >= gameState.enemiesToSpawn) {
+            nextLevel();
+        }
+    }
+
+    towers.forEach(t => { t.update(); t.draw(); });
+
+    enemies.forEach((e, ei) => {
+        e.update();
+        e.draw();
+        if (e.y > canvas.height) {
+            enemies.splice(ei, 1);
+            gameState.health -= 10;
+            gameState.enemiesKilled++;
+            updateUI();
+        }
+    });
+
+    bullets.forEach((b, bi) => {
+        b.update();
+        b.draw();
+        if (Math.hypot(b.target.x - b.x, b.target.y - b.y) < 15) {
+            b.target.hp--;
+            bullets.splice(bi, 1);
+            if (b.target.hp <= 0) {
+                const idx = enemies.indexOf(b.target);
+                if (idx > -1) {
+                    enemies.splice(idx, 1);
+                    gameState.credits += b.target.value;
+                    gameState.enemiesKilled++;
+                    updateUI();
+                }
+            }
+        }
+    });
+
+    frames++;
+    requestAnimationFrame(gameLoop);
+}
+
+gameLoop();
+updateUI();
+</script>
 
 </body>
 </html>
