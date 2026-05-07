@@ -2,48 +2,202 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>🎯 Atrapa el objetivo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MaxiQueen OS | Reflex Protocol</title>
 
   <style>
+    :root {
+      --cyan: #00f2ff;
+      --magenta: #ff00ff;
+      --bg: #020617;
+    }
+
     body {
       margin: 0;
-      background: #0f172a;
+      background: var(--bg);
       color: white;
-      font-family: Arial;
+      font-family: 'Courier New', Courier, monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    .header-panel {
       text-align: center;
+      margin-bottom: 20px;
+      border-bottom: 1px solid var(--cyan);
+      padding: 10px 40px;
+      box-shadow: 0 10px 20px -10px var(--cyan);
     }
 
     #gameArea {
-      width: 300px;
-      height: 300px;
-      margin: 20px auto;
+      width: 350px;
+      height: 450px;
       position: relative;
-      background: #1e293b;
-      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.8);
+      border: 2px solid var(--cyan);
+      border-radius: 15px;
+      box-shadow: 0 0 30px rgba(0, 242, 255, 0.1);
+      overflow: hidden;
+      cursor: crosshair;
     }
 
+    /* El objetivo futurista */
     .target {
-      width: 40px;
-      height: 40px;
-      background: red;
+      width: 45px;
+      height: 45px;
       position: absolute;
-      border-radius: 50%;
-      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
+
+    .target::before {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border: 2px dashed var(--cyan);
+      border-radius: 50%;
+      animation: rotate 2s linear infinite;
+    }
+
+    .target::after {
+      content: '';
+      width: 15px;
+      height: 15px;
+      background: var(--magenta);
+      border-radius: 50%;
+      box-shadow: 0 0 15px var(--magenta);
+    }
+
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    button {
+      background: transparent;
+      color: var(--cyan);
+      border: 1px solid var(--cyan);
+      padding: 10px 25px;
+      font-size: 16px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-top: 20px;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: var(--cyan);
+      color: var(--bg);
+      box-shadow: 0 0 20px var(--cyan);
+    }
+
+    .stats-container {
+      display: flex;
+      gap: 30px;
+      font-size: 20px;
+      margin-top: 10px;
+    }
+
+    .score-val { color: var(--cyan); }
+    .time-val { color: var(--magenta); }
   </style>
 </head>
 
 <body>
 
-<h2>🎯 Atrapa el objetivo</h2>
-<p>Puntos: <span id="score">0</span></p>
-<p>Tiempo: <span id="time">10</span>s</p>
+  <div class="header-panel">
+    <h2>REFLEX PROTOCOL v1.0</h2>
+  </div>
 
-<button onclick="startGame()">Iniciar</button>
+  <div id="gameArea"></div>
 
-<div id="gameArea"></div>
+  <div class="stats-container">
+    <p>SYNC: <span id="score" class="score-val">0</span></p>
+    <p>TEMP: <span id="time" class="time-val">15</span>s</p>
+  </div>
 
-<script src="game.js"></script>
+  <button id="startBtn">INICIAR SECUENCIA</button>
+
+  <script>
+    let score = 0;
+    let timeLeft = 15;
+    let timer;
+    const gameArea = document.getElementById('gameArea');
+    const startBtn = document.getElementById('startBtn');
+
+    function playSynthNote(freq) {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime);
+      gain.gain.setValueAtTime(0.05, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.1);
+    }
+
+    function moveTarget(target) {
+      const maxX = gameArea.clientWidth - 50;
+      const maxY = gameArea.clientHeight - 50;
+      const x = Math.random() * maxX;
+      const y = Math.random() * maxY;
+      target.style.left = `${x}px`;
+      target.style.top = `${y}px`;
+    }
+
+    function createTarget() {
+      const target = document.createElement('div');
+      target.className = 'target';
+      moveTarget(target);
+
+      target.onclick = () => {
+        score++;
+        document.getElementById('score').innerText = score;
+        playSynthNote(800 + (score * 10)); // Sube el tono con cada acierto
+        moveTarget(target);
+      };
+
+      gameArea.appendChild(target);
+    }
+
+    function startGame() {
+      score = 0;
+      timeLeft = 15;
+      document.getElementById('score').innerText = score;
+      document.getElementById('time').innerText = timeLeft;
+      gameArea.innerHTML = '';
+      startBtn.disabled = true;
+      startBtn.style.opacity = "0.3";
+
+      createTarget();
+
+      timer = setInterval(() => {
+        timeLeft--;
+        document.getElementById('time').innerText = timeLeft;
+
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          gameArea.innerHTML = '';
+          startBtn.disabled = false;
+          startBtn.style.opacity = "1";
+          alert("SECUENCIA COMPLETADA. Score final: " + score);
+        }
+      }, 1000);
+    }
+
+    startBtn.addEventListener('click', startGame);
+  </script>
 
 </body>
 </html>
