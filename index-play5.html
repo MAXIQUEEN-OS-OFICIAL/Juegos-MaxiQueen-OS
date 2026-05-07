@@ -1,148 +1,234 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>MAXIQUEEN OS - Tower Defense</title>
-<style>
-    body {
-        margin: 0;
-        background: black;
-        color: white;
-        font-family: Arial;
-        text-align: center;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Defensa del Sistema | MaxiQueen OS</title>
+    <style>
+        :root {
+            --bg: #020617;
+            --primary: #00f2ff;
+            --accent: #7000ff;
+            --error: #ef4444;
+            --text: #e2e8f0;
+        }
 
-    canvas {
-        background: #0a0a0a;
-        display: block;
-        margin: auto;
-        border: 2px solid purple;
-    }
-</style>
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .os-header {
+            width: 100%;
+            padding: 15px;
+            text-align: center;
+            background: rgba(112, 0, 255, 0.1);
+            border-bottom: 1px solid var(--accent);
+        }
+
+        canvas {
+            background: #050510;
+            display: block;
+            margin: 20px auto;
+            border: 1px solid var(--primary);
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.2);
+            cursor: crosshair;
+        }
+
+        .ui-panel {
+            position: absolute;
+            top: 100px;
+            left: 20px;
+            background: rgba(30, 41, 59, 0.8);
+            padding: 15px;
+            border-radius: 12px;
+            border-left: 3px solid var(--primary);
+            backdrop-filter: blur(5px);
+        }
+
+        .stat { margin-bottom: 5px; font-weight: bold; font-size: 0.9rem; }
+        .hint { font-size: 0.7rem; color: #64748b; margin-top: 10px; }
+    </style>
 </head>
 <body>
 
-<h2>MAXIQUEEN OS - Defensa del Sistema</h2>
+<div class="os-header">
+    <h2 style="margin:0; letter-spacing: 3px;">MAXIQUEEN OS <span style="color:var(--primary)">DEFENSE</span></h2>
+</div>
+
+<div class="ui-panel">
+    <div class="stat" style="color: var(--primary)">CRÉDITOS: <span id="data-credits">500</span></div>
+    <div class="stat" style="color: var(--error)">INTEGRIDAD: <span id="system-health">100%</span></div>
+    <div class="stat">COSTO TORRE: <span style="color:var(--primary)">150</span></div>
+    <div class="hint">CLIC EN EL SECTOR PARA<br>DESPLEGAR FIREWALL</div>
+</div>
+
 <canvas id="gameCanvas" width="400" height="600"></canvas>
 
 <script>
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
+// --- ESTADO DEL SISTEMA ---
+let credits = 500;
+let health = 100;
 let towers = [];
 let enemies = [];
 let bullets = [];
+let frames = 0;
 
-// Crear enemigos cada cierto tiempo
-setInterval(() => {
-    enemies.push({
-        x: Math.random() * 380,
-        y: 0,
-        speed: 1 + Math.random()
-    });
-}, 1500);
+// --- CLASES ---
+class Tower {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.range = 120;
+        this.cooldown = 0;
+        this.fireRate = 30; // cuadros entre disparos
+    }
+    draw() {
+        ctx.fillStyle = "#7000ff";
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = "#7000ff";
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 12, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        
+        // Rango visual (opcional)
+        ctx.strokeStyle = "rgba(0, 242, 255, 0.1)";
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.range, 0, Math.PI * 2);
+        ctx.stroke();
+    }
+    update() {
+        if (this.cooldown > 0) this.cooldown--;
+        if (this.cooldown === 0) {
+            const target = enemies.find(e => {
+                const dist = Math.hypot(e.x - this.x, e.y - this.y);
+                return dist < this.range;
+            });
+            if (target) {
+                bullets.push(new Projectile(this.x, this.y, target));
+                this.cooldown = this.fireRate;
+            }
+        }
+    }
+}
 
-// Colocar torres con clic
+class Enemy {
+    constructor() {
+        this.x = Math.random() * (canvas.width - 20) + 10;
+        this.y = -20;
+        this.speed = 1.2 + Math.random() * 0.8;
+        this.hp = 2;
+    }
+    draw() {
+        ctx.fillStyle = "#ef4444";
+        ctx.fillRect(this.x - 8, this.y - 8, 16, 16);
+        // Barra de vida
+        ctx.fillStyle = "#333";
+        ctx.fillRect(this.x - 10, this.y - 15, 20, 3);
+        ctx.fillStyle = "#00f2ff";
+        ctx.fillRect(this.x - 10, this.y - 15, (this.hp/2) * 20, 3);
+    }
+    update() {
+        this.y += this.speed;
+    }
+}
+
+class Projectile {
+    constructor(x, y, target) {
+        this.x = x;
+        this.y = y;
+        this.target = target;
+        this.speed = 7;
+    }
+    draw() {
+        ctx.fillStyle = "#00f2ff";
+        ctx.shadowBlur = 5;
+        ctx.shadowColor = "#00f2ff";
+        ctx.fillRect(this.x - 2, this.y - 2, 4, 4);
+        ctx.shadowBlur = 0;
+    }
+    update() {
+        const dx = this.target.x - this.x;
+        const dy = this.target.y - this.y;
+        const dist = Math.hypot(dx, dy);
+        this.x += (dx / dist) * this.speed;
+        this.y += (dy / dist) * this.speed;
+    }
+}
+
+// --- INTERACCIÓN ---
 canvas.addEventListener("click", (e) => {
-    const rect = canvas.getBoundingClientRect();
-    towers.push({
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top
-    });
+    if (credits >= 150) {
+        const rect = canvas.getBoundingClientRect();
+        towers.push(new Tower(e.clientX - rect.left, e.clientY - rect.top));
+        credits -= 150;
+        updateUI();
+    }
 });
 
-// Dibujar torres
-function drawTowers() {
-    towers.forEach(t => {
-        ctx.fillStyle = "purple";
-        ctx.beginPath();
-        ctx.arc(t.x, t.y, 10, 0, Math.PI * 2);
-        ctx.fill();
-    });
+function updateUI() {
+    document.getElementById('data-credits').innerText = credits;
+    document.getElementById('system-health').innerText = health + "%";
 }
 
-// Dibujar enemigos
-function drawEnemies() {
-    enemies.forEach(e => {
-        ctx.fillStyle = "red";
-        ctx.fillRect(e.x, e.y, 10, 10);
-    });
-}
-
-// Movimiento enemigos
-function moveEnemies() {
-    enemies.forEach(e => {
-        e.y += e.speed;
-    });
-}
-
-// Disparo automático
-function shoot() {
-    towers.forEach(t => {
-        enemies.forEach(e => {
-            const dx = e.x - t.x;
-            const dy = e.y - t.y;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-
-            if (dist < 100) {
-                bullets.push({
-                    x: t.x,
-                    y: t.y,
-                    target: e
-                });
-            }
-        });
-    });
-}
-
-// Dibujar balas
-function drawBullets() {
-    bullets.forEach(b => {
-        ctx.fillStyle = "cyan";
-        ctx.fillRect(b.x, b.y, 4, 4);
-    });
-}
-
-// Movimiento balas
-function moveBullets() {
-    bullets.forEach(b => {
-        if (!b.target) return;
-
-        const dx = b.target.x - b.x;
-        const dy = b.target.y - b.y;
-
-        b.x += dx * 0.1;
-        b.y += dy * 0.1;
-    });
-}
-
-// Colisiones
-function checkHits() {
-    bullets.forEach((b, bi) => {
-        enemies.forEach((e, ei) => {
-            const dx = b.x - e.x;
-            const dy = b.y - e.y;
-            if (Math.sqrt(dx*dx + dy*dy) < 10) {
-                enemies.splice(ei, 1);
-                bullets.splice(bi, 1);
-            }
-        });
-    });
-}
-
-// Loop principal
+// --- LOOP PRINCIPAL ---
 function gameLoop() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "rgba(5, 5, 16, 0.3)"; // Efecto de rastro (Motion Blur)
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    moveEnemies();
-    moveBullets();
-    shoot();
-    checkHits();
+    // Generar enemigos
+    if (frames % 80 === 0) enemies.push(new Enemy());
 
-    drawTowers();
-    drawEnemies();
-    drawBullets();
+    // Procesar Torres
+    towers.forEach(t => {
+        t.update();
+        t.draw();
+    });
 
+    // Procesar Enemigos
+    enemies.forEach((e, ei) => {
+        e.update();
+        e.draw();
+        if (e.y > canvas.height) {
+            enemies.splice(ei, 1);
+            health -= 10;
+            updateUI();
+            if (health <= 0) alert("SISTEMA COMPROMETIDO");
+        }
+    });
+
+    // Procesar Proyectiles
+    bullets.forEach((b, bi) => {
+        b.update();
+        b.draw();
+        
+        // Colisión
+        const dist = Math.hypot(b.target.x - b.x, b.target.y - b.y);
+        if (dist < 10) {
+            b.target.hp -= 1;
+            bullets.splice(bi, 1);
+            if (b.target.hp <= 0) {
+                const index = enemies.indexOf(b.target);
+                if (index > -1) {
+                    enemies.splice(index, 1);
+                    credits += 25;
+                    updateUI();
+                }
+            }
+        }
+    });
+
+    frames++;
     requestAnimationFrame(gameLoop);
 }
 
