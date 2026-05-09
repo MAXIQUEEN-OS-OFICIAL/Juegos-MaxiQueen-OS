@@ -514,6 +514,188 @@ s0.parentNode.insertBefore(s1,s0);
 </div>
 
 <style>
+
+    /* ===================== CHAT ====================== */
+.mq-chat{
+  position:fixed;
+  bottom:24px;
+  right:24px;
+  width:360px;
+  max-height:520px;
+  display:flex;
+  flex-direction:column;
+  border-radius:22px;
+  overflow:hidden;
+  backdrop-filter:blur(25px);
+  background:linear-gradient(
+    145deg,
+    rgba(28, 28, 42, 0.9),
+    rgba(15,15,20,0.8)
+  );
+  border:1px solid rgba(255,255,255,0.08);
+  box-shadow:
+    0 30px 90px rgba(0,0,0,.6),
+    0 0 40px rgba(250,204,21,.15);
+  z-index:9999;
+}
+
+.mq-chat-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 16px;
+  font-weight:600;
+  background:rgba(255,255,255,0.03);
+  border-bottom:1px solid rgba(255,255,255,0.05);
+}
+
+.mq-chat-controls button{
+  background:none;
+  border:none;
+  color:#ccc;
+  font-size:14px;
+  margin-left:8px;
+  cursor:pointer;
+}
+
+.mq-chat-controls button:hover{
+  color:#41c0eb;
+}
+
+.mq-chat-body{
+  flex:1;
+  padding:14px;
+  overflow-y:auto;
+  font-size:14px;
+}
+
+.mq-chat-input{
+  display:flex;
+  padding:12px;
+  border-top:1px solid rgba(255,255,255,0.05);
+}
+
+.mq-chat-input input{
+  flex:1;
+  padding:8px 10px;
+  border-radius:8px;
+  border:none;
+  background:rgba(255,255,255,0.05);
+  color:#fff;
+}
+
+.mq-chat-input button{
+  margin-left:8px;
+  padding:8px 14px;
+  border-radius:8px;
+  border:none;
+  background:#facc15;
+  color:#000;
+  font-weight:600;
+  cursor:pointer;
+}
+.chat-input button:hover{filter:brightness(1.1);}
+
+.social-icon{width:20px;height:20px;object-fit:contain;display:inline-block}
+/* =====================
+   LICENCIA BOX
+===================== */
+.mq-license-box{
+  max-width:820px;
+  margin:5rem auto 6rem;
+  padding:2.5rem 2.2rem;
+  border-radius:1.75rem;
+  background:var(--bg-soft);
+  backdrop-filter:blur(14px);
+  border:1px solid rgba(255,255,255,.08);
+  text-align:center;
+  box-shadow:0 20px 60px rgba(0,0,0,.4);
+}
+.mq-license-box h3{
+  font-size:1.6rem;
+  font-weight:800;
+  margin-bottom:1rem;
+}
+.mq-license-box p{margin-bottom:1rem;color:#d1d5db}
+.mq-license-box ul{
+  text-align:left;
+  max-width:420px;
+  margin:1.25rem auto 1.5rem;
+  color:#e5e7eb;
+}
+.mq-license-box li{margin-bottom:.4rem;}
+.mq-license-check{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:.5rem;
+  margin-bottom:1rem;
+}
+.mq-license-box button{
+  padding:.7rem 1.6rem;
+  border-radius:999px;
+  background:var(--accent);
+  color:#120834;
+  font-weight:700;
+  transition:.2s;
+}
+.mq-license-box button:disabled{
+  opacity:.45;
+  cursor:not-allowed;
+}
+.mq-license-box button:not(:disabled):hover{
+  transform:translateY(-1px);
+  filter:brightness(1.05);
+  box-shadow:0 10px 24px rgba(250,204,21,.35);
+}
+
+   /* Estilo del Certificado Google MaxiQueen OS */
+.cert-google {
+  display: inline-block;
+  padding: 12px 20px;
+  margin: 15px 0;
+  text-decoration: none;
+  font-family: 'Poppins', sans-serif;
+  font-weight: bold;
+  font-size: 14px;
+  color: white !important;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  
+  /* Gradiente oficial de Google con tu toque MQ_OS */
+  background: linear-gradient(135deg, #4285f4, #34a853, #fbbc05, #ea4335);
+  background-size: 200% auto;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.cert-google:hover {
+  background-position: right center;
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 8px 25px rgba(66, 133, 244, 0.4);
+}
+
+.cert-google::before {
+  content: '🏆'; /* Icono de trofeo antes del texto */
+  margin-right: 8px;
+}
+
+   /* Estilo dinámico para el Chat */
+.mq-chat {
+  /* ... otros estilos ... */
+  border: 2px solid var(--accent); /* El borde cambiará de amarillo a verde */
+  box-shadow: 0 0 20px var(--bg-soft);
+}
+
+.mq-chat-header {
+  background: var(--accent);
+  color: var(--btn-text); /* El texto del header se adapta para ser legible */
+}
+
+.msg-user {
+  color: var(--accent); /* Tus mensajes resaltan con el color activo */
+}
+    
     /* Estilos integrados para MaxiQueen OS Hub */
     .os-navigation-hub {
         width: 100%;
